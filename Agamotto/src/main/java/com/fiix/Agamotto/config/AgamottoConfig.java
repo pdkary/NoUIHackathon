@@ -13,10 +13,19 @@ public class AgamottoConfig
 	@Value("${Agamotto.cube.subdomain}")
 	private String subdomain;
 
+	@Value("${Agamotto.cube.appkey}")
+	private String appkey;
+
+	@Value("${Agamotto.cube.accesskey}")
+	private String accesskey;
+
+	@Value("${Agamotto.cube.secret}")
+	private String secret;
+
 	@Bean
 	public Credentials agamottoCredentials()
 	{
-		return new AgamottoCredentials();
+		return new AgamottoCredentials(accesskey, appkey, secret);
 	}
 
 	@Bean

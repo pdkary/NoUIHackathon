@@ -1,24 +1,24 @@
 package com.fiix.Agamotto.config;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import com.ma.cmms.api.client.Credentials;
 
 public class AgamottoCredentials implements Credentials
 {
-	@Value("${Agamotto.cube.appkey}")
+	private String accesskey;
 	private String appkey;
-
-	@Value("${Agamotto.cube.apikey}")
-	private String apikey;
-
-	@Value("${Agamotto.cube.secret}")
 	private String secret;
+
+	public AgamottoCredentials(String accesskey, String appkey, String secret)
+	{
+		this.accesskey = accesskey;
+		this.appkey = appkey;
+		this.secret = secret;
+	}
 
 	@Override
 	public String getAccessKey()
 	{
-		return apikey;
+		return accesskey;
 	}
 
 	@Override

@@ -31,6 +31,7 @@ public class AgamottoRestController
 	}
 
 	@RequestMapping("/details/{assetID}")
+	@ResponseBody
 	public String getDetails(@PathVariable(value = "assetID") String id) throws JsonProcessingException
 	{
 		FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
