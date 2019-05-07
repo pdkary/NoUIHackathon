@@ -42,11 +42,21 @@ public class AgamottoRestController
 		return mapper.writeValueAsString(asset);
 	}
 
-	@RequestMapping("/history/{assetID}")
+	@RequestMapping("/history/asset/{assetID}")
 	@ResponseBody
-	public String getHistory(@PathVariable(value = "assetID") String id) throws JsonProcessingException
+	public String getAssetHistory(@PathVariable(value = "assetID") String id) throws JsonProcessingException
 	{
-		List<MeterReading> readings = assetService.getMeterReadings(id);
+		List<MeterReading> readings = assetService.getMeterReadingsByAsset(id);
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		return mapper.writeValueAsString(readings);
+	}
+
+	@RequestMapping("/history/user/{userId}")
+	@ResponseBody
+	public String getUserHistory(@PathVariable(value = "userId") String id) throws JsonProcessingException
+	{
+		List<MeterReading> readings = assetService.getMeterReadingsByUser(id);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		return mapper.writeValueAsString(readings);

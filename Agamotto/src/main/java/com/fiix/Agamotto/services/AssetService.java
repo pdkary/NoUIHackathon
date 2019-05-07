@@ -19,9 +19,11 @@ import com.ma.cmms.api.crud.FindResponse;
 public class AssetService
 {
 	private static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
-	private static String HISTORY_FIELDS = "id,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID";
+	private static String HISTORY_FIELDS = "id,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID";
+
 	private static String ID = "id";
-	private static String ASSETID = "intAssetID";
+	private static String ASSET_ID = "intAssetID";
+	private static String USER_ID = "intSubmittedByUserID";
 
 	public List<Long> tapMRIDs;
 
@@ -40,15 +42,31 @@ public class AssetService
 		return findResponse.getObjects().get(0);
 	}
 
-	public List<MeterReading> getMeterReadings(String assetId)
+	public List<MeterReading> getMeterReadingsByAsset(String assetId)
 	{
-		List<FindFilter> filterList = getFilter(ASSETID, "=", assetId);
+		List<FindFilter> filterList = getFilter(ASSET_ID, "=", assetId);
 		FindRequest<MeterReading> findRequest = fiixCmmsClient.prepareFind(MeterReading.class);
 		findRequest.setFilters(filterList);
 		findRequest.setFields(HISTORY_FIELDS);
 
 		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
+	}
+
+	public List<MeterReading> getMeterReadingsByUser(String userId)
+	{
+		List<FindFilter> filterList = getFilter(USER_ID, "=", userId);
+		FindRequest<MeterReading> findRequest = fiixCmmsClient.prepareFind(MeterReading.class);
+		findRequest.setFilters(filterList);
+		findRequest.setFields(HISTORY_FIELDS);
+
+		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
+		return findResponse.getObjects();
+	}
+
+	public void Tap(String assetId, Long userId)
+	{
+
 	}
 
 	private List<FindFilter> getFilter(String field, String operator, String value)
