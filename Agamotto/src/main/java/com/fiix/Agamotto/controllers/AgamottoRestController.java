@@ -1,6 +1,6 @@
 package com.fiix.Agamotto.controllers;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,20 +8,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
-import com.ma.cmms.api.crud.FindRequest;
-import com.ma.cmms.api.crud.FindResponse;
+
+import services.AssetService;
 
 @RestController
 public class AgamottoRestController
 {
-	public static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
-
 	@Autowired
 	public FiixCmmsClient fiixCmmsClient;
+
+	@Autowired
+	public AssetService assetService;
 
 	@RequestMapping("/")
 	@ResponseBody
@@ -34,11 +36,9 @@ public class AgamottoRestController
 	@ResponseBody
 	public String getDetails(@PathVariable(value = "assetID") String id) throws JsonProcessingException
 	{
-		FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
-		findRequest.setFields(DETAIL_FIELDS);
-		FindResponse<Asset> findResponse = fiixCmmsClient.find(findRequest);
-		List<Asset> assets = findResponse.getObjects();
+		Optional<Asset> asset = assetService.getAsset(id);
 		ObjectMapper mapper = new ObjectMapper();
-		return mapper.writeValueAsString(assets);
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		return asset.isPresent() ? mapper.writeValueAsString(asset.get()) : "";
 	}
 }
