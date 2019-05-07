@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.fiix.Agamotto.services.AssetService;
 import com.ma.cmms.api.client.Credentials;
 import com.ma.cmms.api.client.FiixCmmsClient;
 
@@ -33,12 +32,6 @@ public class AgamottoConfig
 	public FiixCmmsClient fiixCmmsClient(Credentials agamottoCredentials)
 	{
 		return new FiixCmmsClient(agamottoCredentials, subdomain);
-	}
-
-	@Bean
-	public AssetService assetService()
-	{
-		return new AssetService();
 	}
 
 }

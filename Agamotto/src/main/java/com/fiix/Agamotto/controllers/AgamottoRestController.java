@@ -1,5 +1,7 @@
 package com.fiix.Agamotto.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fiix.Agamotto.services.AssetService;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
+import com.ma.cmms.api.client.dto.MeterReading;
 
 @RestController
 public class AgamottoRestController
@@ -37,5 +40,15 @@ public class AgamottoRestController
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		return mapper.writeValueAsString(asset);
+	}
+
+	@RequestMapping("/history/{assetID}")
+	@ResponseBody
+	public String getHistory(@PathVariable(value = "assetID") String id) throws JsonProcessingException
+	{
+		List<MeterReading> readings = assetService.getMeterReadings(id);
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		return mapper.writeValueAsString(readings);
 	}
 }
