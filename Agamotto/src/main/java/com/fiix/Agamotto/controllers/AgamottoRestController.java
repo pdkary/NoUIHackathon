@@ -3,6 +3,7 @@ package com.fiix.Agamotto.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -15,6 +16,8 @@ import com.fiix.Agamotto.services.AssetService;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
 import com.ma.cmms.api.client.dto.MeterReading;
+
+import static java.util.Arrays.asList;
 
 @RestController
 public class AgamottoRestController
@@ -50,5 +53,15 @@ public class AgamottoRestController
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		return mapper.writeValueAsString(readings);
+	}
+
+	@GetMapping("/neighbors/{assetID}")
+	@ResponseBody
+	public String getNeighbors(@PathVariable(value = "assetID") String id) throws JsonProcessingException
+	{
+		final List<Asset> nearbyAssets = assetService.getNearbyAssets(id);
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		return mapper.writeValueAsString(asList(nearbyAssets));
 	}
 }
