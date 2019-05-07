@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
-import com.ma.cmms.api.client.dto.AssetEvent;
+import com.ma.cmms.api.client.dto.MeterReading;
 import com.ma.cmms.api.crud.FindFilter;
 import com.ma.cmms.api.crud.FindRequest;
 import com.ma.cmms.api.crud.FindResponse;
@@ -35,13 +35,13 @@ public class AssetService
 		return findResponse.getObjects().get(0);
 	}
 
-	public List<AssetEvent> getAssetEvents(String assetId)
+	public List<MeterReading> getMeterReadings(String assetId)
 	{
 		List<FindFilter> filterList = getFilter(ASSETID, assetId);
-		FindRequest<AssetEvent> findRequest = fiixCmmsClient.prepareFind(AssetEvent.class);
+		FindRequest<MeterReading> findRequest = fiixCmmsClient.prepareFind(MeterReading.class);
 		findRequest.setFilters(filterList);
 
-		FindResponse<AssetEvent> findResponse = fiixCmmsClient.find(findRequest);
+		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
 	}
 
