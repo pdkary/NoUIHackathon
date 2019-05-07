@@ -1,7 +1,5 @@
 package com.fiix.Agamotto.controllers;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,9 +34,9 @@ public class AgamottoRestController
 	@ResponseBody
 	public String getDetails(@PathVariable(value = "assetID") String id) throws JsonProcessingException
 	{
-		Optional<Asset> asset = assetService.getAsset(id);
+		Asset asset = assetService.getAsset(id);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
-		return asset.isPresent() ? mapper.writeValueAsString(asset.get()) : "";
+		return mapper.writeValueAsString(asset);
 	}
 }
