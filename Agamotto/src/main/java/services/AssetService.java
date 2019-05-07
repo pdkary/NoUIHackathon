@@ -16,9 +16,9 @@ import com.ma.cmms.api.crud.FindResponse;
 @Service
 public class AssetService
 {
-	public static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
-	public static String ID = "id";
-	public static String ASSETID = "intAssetID";
+	private static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
+	private static String ID = "id";
+	private static String ASSETID = "intAssetID";
 
 	@Autowired
 	private FiixCmmsClient fiixCmmsClient;
@@ -29,6 +29,8 @@ public class AssetService
 
 		FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
 		findRequest.setFilters(filterList);
+		findRequest.setFields(DETAIL_FIELDS);
+
 		FindResponse<Asset> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects().get(0);
 	}
@@ -38,6 +40,8 @@ public class AssetService
 		List<FindFilter> filterList = getFilter(ASSETID, assetId);
 		FindRequest<AssetEvent> findRequest = fiixCmmsClient.prepareFind(AssetEvent.class);
 		findRequest.setFilters(filterList);
+		findRequest.setFields(DETAIL_FIELDS);
+
 		FindResponse<AssetEvent> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
 	}
@@ -45,7 +49,6 @@ public class AssetService
 	private List<FindFilter> getFilter(String field, String value)
 	{
 		FindFilter findFilter = new FindFilter();
-		findFilter.setFields(DETAIL_FIELDS);
 		findFilter.setQl(field.concat("=").concat(value));
 
 		List<FindFilter> filterList = new ArrayList<FindFilter>();
