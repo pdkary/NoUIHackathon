@@ -1,5 +1,7 @@
 package com.fiix.Agamotto.services;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,8 +17,6 @@ import com.ma.cmms.api.crud.FindFilter;
 import com.ma.cmms.api.crud.FindRequest;
 import com.ma.cmms.api.crud.FindResponse;
 
-import static java.util.Arrays.asList;
-
 @Service
 public class AssetService
 {
@@ -28,6 +28,7 @@ public class AssetService
 	private static String USER_ID = "intSubmittedByUserID";
 
 	public List<Long> tapMRIDs;
+	public List<FindFilter> tapFilter;
 
 	@Autowired
 	private FiixCmmsClient fiixCmmsClient;
@@ -50,6 +51,7 @@ public class AssetService
 		FindRequest<MeterReading> findRequest = fiixCmmsClient.prepareFind(MeterReading.class);
 		findRequest.setFilters(filterList);
 		findRequest.setFields(HISTORY_FIELDS);
+		findRequest.setOrderBy("dtmDateSubmitted");
 
 		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
@@ -61,14 +63,16 @@ public class AssetService
 		FindRequest<MeterReading> findRequest = fiixCmmsClient.prepareFind(MeterReading.class);
 		findRequest.setFilters(filterList);
 		findRequest.setFields(HISTORY_FIELDS);
+		findRequest.setOrderBy("dtmDateSubmitted");
 
 		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
 	}
 
-	public void Tap(String assetId, Long userId)
+	public void Tap(String assetId, String userId)
 	{
-
+		List<MeterReading> readings = getMeterReadingsByUser(userId);
+		//^^ this will be a list of meter readings submitted by the user, in descending order (oldest first)
 	}
 
 	private List<FindFilter> getFilter(String field, String operator, String value)
@@ -87,6 +91,9 @@ public class AssetService
 		findRequest.setFields("id,strName");
 		FindResponse<MeterReadingUnit> findResponse = fiixCmmsClient.find(findRequest);
 		tapMRIDs = findResponse.getObjects().stream().filter(mr -> mr.getStrName().contains("Tap")).map(mr -> mr.getId()).collect(Collectors.toList());
+		String ql = tapMRIDs.toString();
+		ql = "(".concat(ql.substring(1, ql.length() - 1)).concat(")");
+		tapFilter = getFilter(ID, " IN ", ql);
 	}
 
 	public List<Asset> getNearbyAssets(String asset)
