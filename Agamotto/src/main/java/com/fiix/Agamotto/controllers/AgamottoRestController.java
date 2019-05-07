@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fiix.Agamotto.services.AssetService;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
-
-import services.AssetService;
 
 @RestController
 public class AgamottoRestController

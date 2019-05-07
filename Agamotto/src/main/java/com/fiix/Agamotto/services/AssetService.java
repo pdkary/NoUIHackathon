@@ -1,4 +1,4 @@
-package services;
+package com.fiix.Agamotto.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,6 @@ public class AssetService
 		List<FindFilter> filterList = getFilter(ASSETID, assetId);
 		FindRequest<AssetEvent> findRequest = fiixCmmsClient.prepareFind(AssetEvent.class);
 		findRequest.setFilters(filterList);
-		findRequest.setFields(DETAIL_FIELDS);
 
 		FindResponse<AssetEvent> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
