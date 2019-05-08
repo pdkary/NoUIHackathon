@@ -36,7 +36,7 @@ public class JsonToPdfClass
 		JsonReader jsonReader = Json.createReader(new StringReader(jsonStr));
 		jsonObject = jsonReader.readObject();
 		jsonReader.close();
-		System.out.println(jsonObject.toString());
+		//System.out.println(jsonObject.toString());
 	}
 
 	public static PdfPCell formatCell(PdfPCell pdfCellInput, BaseColor basecolor) {
