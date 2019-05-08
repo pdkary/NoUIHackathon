@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fiix.Agamotto.helpers.ConsolidatedHelper;
+import com.fiix.Agamotto.models.AssetDto;
+import com.fiix.Agamotto.models.AssetReading;
+import com.fiix.Agamotto.models.Manual;
+import com.fiix.Agamotto.models.NeighbourAsset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -181,5 +186,27 @@ public class AssetService
 		filter.setParameters(parameters);
 
 		return asList(filter);
+	}
+
+	public AssetDto getConsolidatedAsset(String id)
+	{
+		final AssetDto.AssetDtoBuilder builder = AssetDto.builder();
+		final Asset asset = getAsset(id);
+
+		ConsolidatedHelper.copyAssetData(asset, builder);
+
+		if(asset!=null)
+		{
+			List<NeighbourAsset> neighbourAssets = ConsolidatedHelper.getNeighbourAssets(getNearbyAssets(asset));
+			List<Manual> manuals = ConsolidatedHelper.getManuals(asset);
+			List<AssetReading> readings = ConsolidatedHelper.getReadings(getMeterReadingsByAsset(String.valueOf(asset.getId())));
+
+			builder.neighbouringAssets(neighbourAssets)
+			.assetManuals(manuals)
+			.assetReadings(readings);
+
+			return builder.build();
+		}
+		return null;
 	}
 }
