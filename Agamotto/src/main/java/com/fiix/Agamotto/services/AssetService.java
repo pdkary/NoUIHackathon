@@ -154,12 +154,15 @@ public class AssetService
 	{
 		List<FindFilter> filterList = getNearbyFilter(asset);
 
-		FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
-		findRequest.setFilters(filterList);
-		findRequest.setFields(DETAIL_FIELDS);
+		if(filterList!=null){
+			FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
+			findRequest.setFilters(filterList);
+			findRequest.setFields(DETAIL_FIELDS);
 
-		FindResponse<Asset> findResponse = fiixCmmsClient.find(findRequest);
-		return findResponse.getObjects();
+			FindResponse<Asset> findResponse = fiixCmmsClient.find(findRequest);
+			return findResponse.getObjects();
+		}
+		return null;
 	}
 
 	public List<FindFilter> getNearbyFilter(Asset asset)
