@@ -2,6 +2,9 @@ package com.fiix.Agamotto.controllers;
 
 import static java.util.Arrays.asList;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 import com.fiix.Agamotto.models.AssetDto;
@@ -74,7 +77,7 @@ public class AgamottoRestController
 		final List<Asset> nearbyAssets = assetService.getNearbyAssets(id);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
-		return mapper.writeValueAsString(asList(nearbyAssets));
+		return mapper.writeValueAsString(nearbyAssets);
 	}
 
 	@GetMapping("/consolidated/{assetID}")
