@@ -8,10 +8,15 @@ import com.itextpdf.text.pdf.CMYKColor;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import org.apache.tomcat.util.json.JSONParser;
 
-import javax.json.*;
-import java.io.*;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.StringReader;
 
 //import java.io.FileNotFoundException;
 //import com.itextpdf.text.DocumentException;
@@ -88,11 +93,13 @@ public class JsonToPdfClass
 	}
 
 	public byte[] writePdf(PdfPTable pdfTable) throws FileNotFoundException, DocumentException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Document document = new Document();
+		PdfWriter.getInstance(document, baos);
         document.open();
         document.add(pdfTable);
         document.close();
-        return documentToByte(document);
+        return baos.toByteArray();
 	}
 
 	public byte[] createPDF(AssetDto assetDto) throws Exception
@@ -140,10 +147,4 @@ public class JsonToPdfClass
          return null;
       }
    }
-	public byte[] documentToByte(Document document) throws DocumentException
-	{
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		PdfWriter.getInstance(document, baos);
-		return baos.toByteArray();
-	}
 }
