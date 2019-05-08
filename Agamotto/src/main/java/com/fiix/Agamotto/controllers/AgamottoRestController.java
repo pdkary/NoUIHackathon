@@ -1,5 +1,7 @@
 package com.fiix.Agamotto.controllers;
 
+import static java.util.Arrays.asList;
+
 import java.util.List;
 
 import com.fiix.Agamotto.models.AssetDto;
@@ -17,8 +19,6 @@ import com.fiix.Agamotto.services.AssetService;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
 import com.ma.cmms.api.client.dto.MeterReading;
-
-import static java.util.Arrays.asList;
 
 @RestController
 public class AgamottoRestController
@@ -80,5 +80,12 @@ public class AgamottoRestController
 	public AssetDto getConsolidatedAsset(@PathVariable(value = "assetID") String id) throws JsonProcessingException
 	{
 		return assetService.getConsolidatedAsset(id);
+	}
+
+	@GetMapping("/tap")
+	@ResponseBody
+	public String testTap()
+	{
+		return assetService.Tap("5904069", "18");
 	}
 }
