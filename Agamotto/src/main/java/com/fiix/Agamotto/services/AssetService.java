@@ -20,13 +20,15 @@ import static java.util.Arrays.asList;
 @Service
 public class AssetService
 {
-	protected static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
+	protected static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode, dblLatitude, dblLongitude";
 	protected static String HISTORY_FIELDS = "id,intAssetId,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID, dv_intAssetID";
 	private static String TAP_FIELDS = "intSubmittedByUserID, intMeterReadingUnitsID, intAssetID, dtmDateSubmitted, dv_intAssetID";
 
 	protected static String ID = "id";
 	protected static String ASSET_ID = "intAssetID";
 	protected static String USER_ID = "intSubmittedByUserID";
+
+	protected static final Double GEO_LOCATION_RANGE = 0.0001;
 
 	protected Long inID;
 	protected Long outID;
@@ -200,17 +202,18 @@ public class AssetService
 
 	public List<FindFilter> getNearbyFilter(Asset asset)
 	{
-		boolean hasAisleAndRow, hasBinNumber, hasParentId, hasLocation;
+		boolean hasAisleAndRow, hasBinNumber, hasParentId, hasLocation, hasGeoLocation;
 		hasAisleAndRow = asset.getStrRow() != null && asset.getStrAisle() != null;
 		hasBinNumber = asset.getStrBinNumber() != null;
 		hasParentId = asset.getIntAssetParentID() != null;
 		hasLocation = asset.getIntAssetLocationID() != null;
+		hasGeoLocation = asset.getDblLatitude() != null && asset.getDblLongitude() !=null;
 		List<Object> parameters = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("(id != ?)");
 		parameters.add(asset.getId());
-		if (hasParentId || hasLocation || hasAisleAndRow || hasBinNumber)
+		if (hasParentId || hasLocation || hasAisleAndRow || hasBinNumber || hasGeoLocation)
 		{
 			sb.append(" AND (");
 			if (hasParentId)
@@ -250,6 +253,25 @@ public class AssetService
 					sb.append("(");
 					sb.append("(strBinNumber=?)");
 					parameters.add(asset.getStrBinNumber());
+					sb.append(")");
+				}
+				if (hasGeoLocation)
+				{
+					if (hasLocation || hasAisleAndRow || hasBinNumber)
+					{
+						sb.append(" OR ");
+					}
+					sb.append("(");
+
+					sb.append("(dblLatitude > ? AND dblLatitude < ?)");
+					parameters.add(asset.getDblLatitude() - GEO_LOCATION_RANGE);
+					parameters.add(asset.getDblLatitude() + GEO_LOCATION_RANGE);
+
+					sb.append(" AND ");
+
+					sb.append("(dblLongitude > ? AND dblLongitude < ?)");
+					parameters.add(asset.getDblLongitude() - GEO_LOCATION_RANGE);
+					parameters.add(asset.getDblLongitude() + GEO_LOCATION_RANGE);
 					sb.append(")");
 				}
 			}
