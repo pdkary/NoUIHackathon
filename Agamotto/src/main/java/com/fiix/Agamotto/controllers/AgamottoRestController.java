@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import com.fiix.Agamotto.models.AssetDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -73,6 +74,12 @@ public class AgamottoRestController
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		return mapper.writeValueAsString(asList(nearbyAssets));
+	}
+
+	@GetMapping("/consolidated/{assetID}")
+	public AssetDto getConsolidatedAsset(@PathVariable(value = "assetID") String id) throws JsonProcessingException
+	{
+		return assetService.getConsolidatedAsset(id);
 	}
 
 	@GetMapping("/tap")

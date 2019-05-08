@@ -1,26 +1,22 @@
 package com.fiix.Agamotto.services;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Stack;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import com.fiix.Agamotto.helpers.ConsolidatedHelper;
+import com.fiix.Agamotto.models.AssetDto;
+import com.fiix.Agamotto.models.AssetReading;
+import com.fiix.Agamotto.models.Manual;
+import com.fiix.Agamotto.models.NeighbourAsset;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
 import com.ma.cmms.api.client.dto.MeterReading;
 import com.ma.cmms.api.client.dto.MeterReadingUnit;
-import com.ma.cmms.api.crud.AddRequest;
-import com.ma.cmms.api.crud.AddResponse;
-import com.ma.cmms.api.crud.FindFilter;
-import com.ma.cmms.api.crud.FindRequest;
-import com.ma.cmms.api.crud.FindResponse;
+import com.ma.cmms.api.crud.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.asList;
 
 @Service
 public class AssetService
@@ -179,12 +175,15 @@ public class AssetService
 	{
 		List<FindFilter> filterList = getNearbyFilter(asset);
 
-		FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
-		findRequest.setFilters(filterList);
-		findRequest.setFields(DETAIL_FIELDS);
+		if(filterList!=null){
+			FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
+			findRequest.setFilters(filterList);
+			findRequest.setFields(DETAIL_FIELDS);
 
-		FindResponse<Asset> findResponse = fiixCmmsClient.find(findRequest);
-		return findResponse.getObjects();
+			FindResponse<Asset> findResponse = fiixCmmsClient.find(findRequest);
+			return findResponse.getObjects();
+		}
+		return null;
 	}
 
 	public List<FindFilter> getNearbyFilter(Asset asset)
@@ -255,5 +254,27 @@ public class AssetService
 		filter.setParameters(parameters);
 
 		return asList(filter);
+	}
+
+	public AssetDto getConsolidatedAsset(String id)
+	{
+		final AssetDto.AssetDtoBuilder builder = AssetDto.builder();
+		final Asset asset = getAsset(id);
+
+		ConsolidatedHelper.copyAssetData(asset, builder);
+
+		if(asset!=null)
+		{
+			List<NeighbourAsset> neighbourAssets = ConsolidatedHelper.getNeighbourAssets(getNearbyAssets(asset));
+			List<Manual> manuals = ConsolidatedHelper.getManuals(asset);
+			List<AssetReading> readings = ConsolidatedHelper.getReadings(getMeterReadingsByAsset(String.valueOf(asset.getId())));
+
+			builder.neighbouringAssets(neighbourAssets)
+			.assetManuals(manuals)
+			.assetReadings(readings);
+
+			return builder.build();
+		}
+		return null;
 	}
 }
