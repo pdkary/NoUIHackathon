@@ -2,10 +2,7 @@ package com.fiix.Agamotto.services;
 
 import com.fiix.Agamotto.helpers.ConsolidatedHelper;
 import com.fiix.Agamotto.helpers.JsonToPdfClass;
-import com.fiix.Agamotto.models.AssetDto;
-import com.fiix.Agamotto.models.AssetReading;
-import com.fiix.Agamotto.models.Manual;
-import com.fiix.Agamotto.models.NeighbourAsset;
+import com.fiix.Agamotto.models.*;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
 import com.ma.cmms.api.client.dto.MeterReading;
@@ -14,7 +11,7 @@ import com.ma.cmms.api.crud.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.Document;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +21,8 @@ import static java.util.Arrays.asList;
 public class AssetService
 {
 	protected static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
-	protected static String HISTORY_FIELDS = "id,intAssetId,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID";
-	private static String TAP_FIELDS = "intSubmittedByUserID, intMeterReadingUnitsID, intAssetID, dtmDateSubmitted";
+	protected static String HISTORY_FIELDS = "id,intAssetId,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID, dv_intAssetID";
+	private static String TAP_FIELDS = "intSubmittedByUserID, intMeterReadingUnitsID, intAssetID, dtmDateSubmitted, dv_intAssetID";
 
 	protected static String ID = "id";
 	protected static String ASSET_ID = "intAssetID";
@@ -77,14 +74,20 @@ public class AssetService
 		return findResponse.getObjects();
 	}
 
-	public String Tap(String assetId, String userId)
+	public TapDto Tap(String assetId, String userId)
 	{
 		HashMap<Long, Stack<MeterReading>> assetHistory = new HashMap<>();
+		HashMap<String, String> nameMap = new HashMap<>();
+		TapDto tapDto = new TapDto();
 
-		List<MeterReading> allTaps = getMeterReadingsByUser(userId).stream().filter(mr -> mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap")).collect(Collectors.toList());
-
+		List<MeterReading> allTaps = getMeterReadingsByUser(userId).stream().filter(mr -> {
+			boolean isTap = mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap");
+			boolean isNewIsh = mr.getDtmDateSubmitted().after(Date.from(Instant.now().minusSeconds(3600)));
+			return isTap && isNewIsh;
+		}).collect(Collectors.toList());
 		allTaps.forEach(mr -> {
 			Long mrAssetID = mr.getIntAssetID();
+			nameMap.put(mrAssetID.toString(),mr.getExtraFields().get("dv_intAssetID").toString());
 			if (!assetHistory.containsKey(mrAssetID))
 			{
 				assetHistory.put(mrAssetID, new Stack<MeterReading>());
@@ -96,23 +99,27 @@ public class AssetService
 			}
 			else
 			{
-				assetStack.pop();
+				if(!assetStack.isEmpty()){
+					assetStack.pop();
+				}
 			}
 			assetHistory.put(mrAssetID, assetStack);
 		});
-		if (assetHistory.get(Long.valueOf(assetId)).isEmpty())
+		if (assetHistory.getOrDefault(Long.valueOf(assetId),new Stack<>()).isEmpty())
 		{
 			logTapIn(assetId, userId);
+			tapDto.setInTap(nameMap.get(assetId));
 		}
 		assetHistory.keySet().forEach(key -> {
 			Stack<MeterReading> assetStack = assetHistory.get(key);
 			if (!assetStack.isEmpty())
 			{
 				logTapOut(key.toString(), userId);
+				tapDto.setOutTap(nameMap.get(key.toString()));
 			}
 		});
 
-		return assetHistory.toString();
+		return tapDto;
 	}
 
 	private AddResponse<MeterReading> logTapIn(String assetID, String userID)

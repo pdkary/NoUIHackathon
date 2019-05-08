@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import com.fiix.Agamotto.models.AssetDto;
+import com.fiix.Agamotto.models.TapDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,13 +91,14 @@ public class AgamottoRestController
 	@ResponseBody
 	public byte[] getPdf(@PathVariable(value = "assetID") String id) throws Throwable
 	{
+		TapDto tapDto = assetService.Tap(id,"18");
 		return assetService.getPDF(id);
 	}
 
-	@GetMapping("/tap")
+	@GetMapping("/tap/{assetID}")
 	@ResponseBody
-	public String testTap()
+	public TapDto tap(@PathVariable(value = "assetID") String id)
 	{
-		return assetService.Tap("5904069", "18");
+		return assetService.Tap(id, "18");
 	}
 }
