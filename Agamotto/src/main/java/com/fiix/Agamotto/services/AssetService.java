@@ -56,7 +56,7 @@ public class AssetService
 		FindRequest<MeterReading> findRequest = fiixCmmsClient.prepareFind(MeterReading.class);
 		findRequest.setFilters(filterList);
 		findRequest.setFields(HISTORY_FIELDS);
-		findRequest.setOrderBy("dtmDateSubmitted");
+		findRequest.setOrderBy("dtmDateSubmitted asc");
 
 		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
@@ -68,7 +68,7 @@ public class AssetService
 		FindRequest<MeterReading> findRequest = fiixCmmsClient.prepareFind(MeterReading.class);
 		findRequest.setFilters(filterList);
 		findRequest.setFields(HISTORY_FIELDS);
-		findRequest.setOrderBy("dtmDateSubmitted");
+		findRequest.setOrderBy("dtmDateSubmitted asc");
 
 		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
 		return findResponse.getObjects();
