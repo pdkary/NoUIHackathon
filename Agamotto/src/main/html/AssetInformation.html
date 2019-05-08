@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Asset Information</title>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+</head>
+<body>
+<center>
+<table border="2" align="center" width = "80%">
+	<tr><td><h1>Asset Name</h1> </td> <td> <h1> <span id="#assetNameColumn"> </span> </h1> </td> </tr>
+	<tr><td><h2>Asset Code</h2> </td> <td> <h2> <span id="#assetCodeColumn"> </span> </h2> </td> </tr>
+	<tr><td><b>Serial Number</b> </td> <td> <b> <span id="#assetSno"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Category</b> </td> <td> <b> <span id="#assetCat"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Manufacturer</b> </td> <td> <b> <span id="#assetMan"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Model</b> </td> <td> <b> <span id="#assetModel"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Status</b> </td> <td> <b> <span id="#assetStatus"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Description</b> </td> <td> <b> <span id="#assetDesc"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Location</b> </td> <td> <b> <span id="#assetLoc"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Created Date</b> </td> <td> <b> <span id="#assetCrdat"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Last Inspected Date</b> </td> <td> <b> <span id="#assetLastIns"> </span> </b> </td> </tr>
+	<tr><td><b>Asset Bar Code</b> </td> <td> <b> <span id="#assetBarCode"> </span> </b> </td> </tr>
+	<tr><td><b>Parent Tenant Id</b> </td> <td> <b> <span id="#assetTenent"> </span> </b> </td> </tr>
+	<tr>
+		<td><b>Asset Manuals</b> </td> 
+		<td id="#assetManuals">
+			 <table id="assetManualList"> </table> </b> 
+		</td> 
+	</tr>
+	<tr>
+		<td>Neighboring Assets</td>
+		<td id="neighbouringAssets">
+			<table id="neighbouringAssetTable" style="outline: thin solid"></table>
+		</td>
+	</tr>
+	<tr>
+		<td> Asset Readings </td>
+		<td id="assetReadings">
+			<table id="assetReadingsTable"></table>
+		</td>
+	</tr>
+</table>
+</body>
+<script>
+	var mockObject = {
+			"assetCode": "As",
+			"assetName": "Sample Asset Name",
+			"serialNumber": "121212121",
+			"assetCategory": "B",
+			"assetManufacturer": "Johnson and Johnson",
+			"assetModel": "Temp Model",
+			"assetStatus":"Offline",
+			"assetDescription": "A sample asset that is used for testing",
+			"assetLocation": "Scarsborough, ON",
+			"assetCreatedDate": "2019-05-06",
+			"assetLastInspectedDate": "2019-05-07",
+			"assetBarCode": "image",
+			"tenantId": "TempTenet12354",
+			"neighbouringAssets": [
+				{ 	"assetId": "1",
+					"assetStatus":"Online",
+					"assetLastServicedDate": "2019-05-06"
+				},
+				{ 	"assetId": "2",
+					"assetStatus":"Offline",
+					"assetLastServicedDate": "2017-06-08"
+				},
+				{ 	"assetId": "3",
+					"assetStatus":"Online",
+					"assetLastServicedDate": "2019-01-06"
+				}
+				],
+			"assetManuals" : ["http://assetmanualurl1.fiix.com","http://assetmanualurl2.fiix.com"],
+			"assetReadings" : [
+				{
+					"temperature": "36"
+				},
+				{
+					"weight" : "109.7"
+				}
+			]
+				
+		};
+	
+	var assetCodeColumn = document.getElementById("#assetCodeColumn");
+	assetCodeColumn.textContent = mockObject.assetCode;
+	
+	var assetNameColumn = document.getElementById("#assetNameColumn");
+	assetNameColumn.textContent = mockObject.assetName;
+	
+	var assetSno = document.getElementById("#assetSno");
+	assetSno.textContent = mockObject.serialNumber;
+	
+	var assetCat = document.getElementById("#assetCat");
+	assetCat.textContent = mockObject.assetCategory;
+	
+	var assetMan = document.getElementById("#assetMan");
+	assetMan.textContent = mockObject.assetManufacturer;
+	
+	var assetModel = document.getElementById("#assetModel");
+	assetModel.textContent = mockObject.assetModel;
+	
+	var assetStatus = document.getElementById("#assetStatus");
+	assetStatus.textContent = mockObject.assetStatus;
+	
+	var assetDesc = document.getElementById("#assetDesc");
+	assetDesc.textContent = mockObject.assetDescription;
+	
+	var assetLoc = document.getElementById("#assetLoc");
+	assetLoc.textContent = mockObject.assetLocation;
+	
+	var assetCrdat = document.getElementById("#assetCrdat");
+	assetCrdat.textContent = mockObject.assetCreatedDate;
+	
+	var assetLastIns = document.getElementById("#assetLastIns");
+	assetLastIns.textContent = mockObject.assetLastInspectedDate;
+	
+	var assetTenent = document.getElementById("#assetTenent");
+	assetTenent.textContent = mockObject.tenentId;
+	
+	var assetBarCode = document.getElementById("#assetBarCode");
+	assetBarCode.textContent = mockObject.assetBarCode;
+	
+	var nAssetManuals = document.getElementById("#assetManualList");
+	var nAssetManual;
+	var assetManualRow;
+	for(var i=0; i<mockObject.assetManuals.length;i++) {
+		nAssetManual = mockObject.assetManuals[i];
+		assetManualRow = $("<tr><td>"+nAssetManual +"</td></tr>");
+		$("#assetManualList").append(assetManualRow);
+	}
+	
+	var nTable = document.getElementById("#neighbouringAssetTable");
+	var nAsset;
+	var row;
+	for(var i = 0; i < mockObject.neighbouringAssets.length; i++) {
+		nAsset = mockObject.neighbouringAssets[i];
+		
+		row = $("<tr><td>Asset ID</td><td>" + nAsset.assetId + "</td></tr>");
+		$("#neighbouringAssetTable").append(row);
+		
+		row = $("<tr><td>Asset Status</td><td>" + nAsset.assetStatus + "</td></tr>");
+		$("#neighbouringAssetTable").append(row);
+		
+		row = $("<tr><td>Last Service Date</td><td>" + nAsset.assetLastServicedDate + "</td></tr>");
+		$("#neighbouringAssetTable").append(row);
+		
+	}
+	
+	var nAssetReadings = document.getElementById("#assetReadingsTable");
+	var nAssetReadingKey;
+	var nAssetReadingValue;
+	var assetReadingRow;
+	var assetReadings = mockObject.assetReadings;
+	for(var reading in assetReadings) {
+		assetReadingRow = $("<tr><td>"+ reading +"</td><td>"+ JSON.stringify(reading[assetReadings]) +"</td></tr>");
+		$("#assetReadingsTable").append(assetReadingRow);
+	}
+	/*for(var i=0;i<mockObject.assetReadings.length;i++) {
+		nAssetReadingKey = mockObject.assetReadings[i];
+		nAssetReadingValue = mockObject.assetReadings[i];
+		assetReadingRow = $("<tr><td>"+ Object.keys(nAssetReadingKey) +"</td><td>"+ nAssetReadingValue[1].data +"</td></tr>");
+		$("#assetReadingsTable").append(assetReadingRow);
+	}
+	*/
+
+</script>
+</html>
