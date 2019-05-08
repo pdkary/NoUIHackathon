@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fiix.Agamotto.models.AssetDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -80,6 +81,13 @@ public class AgamottoRestController
 	public AssetDto getConsolidatedAsset(@PathVariable(value = "assetID") String id) throws JsonProcessingException
 	{
 		return assetService.getConsolidatedAsset(id);
+	}
+
+	@GetMapping(value = "/pdf/{assetID}", produces = MediaType.APPLICATION_PDF_VALUE)
+	@ResponseBody
+	public byte[] getPdf(@PathVariable(value = "assetID") String id) throws Throwable
+	{
+		return assetService.getPDF(id);
 	}
 
 	@GetMapping("/tap")

@@ -1,6 +1,7 @@
 package com.fiix.Agamotto.services;
 
 import com.fiix.Agamotto.helpers.ConsolidatedHelper;
+import com.fiix.Agamotto.helpers.JsonToPdfClass;
 import com.fiix.Agamotto.models.AssetDto;
 import com.fiix.Agamotto.models.AssetReading;
 import com.fiix.Agamotto.models.Manual;
@@ -13,6 +14,7 @@ import com.ma.cmms.api.crud.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.Document;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,8 @@ public class AssetService
 
 	@Autowired
 	private FiixCmmsClient fiixCmmsClient;
+
+	private JsonToPdfClass pdfClass = new JsonToPdfClass();
 
 	public Asset getAsset(String assetId)
 	{
@@ -175,7 +179,8 @@ public class AssetService
 	{
 		List<FindFilter> filterList = getNearbyFilter(asset);
 
-		if(filterList!=null){
+		if (filterList != null)
+		{
 			FindRequest<Asset> findRequest = fiixCmmsClient.prepareFind(Asset.class);
 			findRequest.setFilters(filterList);
 			findRequest.setFields(DETAIL_FIELDS);
@@ -263,18 +268,24 @@ public class AssetService
 
 		ConsolidatedHelper.copyAssetData(asset, builder);
 
-		if(asset!=null)
+		if (asset != null)
 		{
 			List<NeighbourAsset> neighbourAssets = ConsolidatedHelper.getNeighbourAssets(getNearbyAssets(asset));
 			List<Manual> manuals = ConsolidatedHelper.getManuals(asset);
 			List<AssetReading> readings = ConsolidatedHelper.getReadings(getMeterReadingsByAsset(String.valueOf(asset.getId())));
 
 			builder.neighbouringAssets(neighbourAssets)
-			.assetManuals(manuals)
-			.assetReadings(readings);
+				.assetManuals(manuals)
+				.assetReadings(readings);
 
 			return builder.build();
 		}
 		return null;
+	}
+
+	public byte[] getPDF(String assetID) throws Throwable
+	{
+		AssetDto dto =  getConsolidatedAsset(assetID);
+		return pdfClass.createPDF(dto);
 	}
 }

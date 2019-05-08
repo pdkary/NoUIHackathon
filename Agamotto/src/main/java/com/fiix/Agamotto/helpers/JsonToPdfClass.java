@@ -1,60 +1,39 @@
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-//import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+package com.fiix.Agamotto.helpers;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fiix.Agamotto.models.AssetDto;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.CMYKColor;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.FontFactory;
+//import java.io.FileNotFoundException;
 //import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.CMYKColor;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
  
 public class JsonToPdfClass
-
 {
 	static BaseColor cellBgTitle = BaseColor.LIGHT_GRAY;
 	static BaseColor cellBgValue = BaseColor.WHITE;
 	private static JsonObject jsonObject;
 	
-	public static void getJson() throws IOException {
-		HttpURLConnection connection = null;
-		String url = "http://10.0.0.159:8080/consolidated/5904071";
+	public static void getJson(AssetDto assetDto) throws IOException {
 
-	    URL obj = new URL(url);
-	    HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+		String jsonStr = mapper.writeValueAsString(assetDto);
+		ByteArrayInputStream fis = new ByteArrayInputStream(jsonStr.getBytes());
 
-	    // optional default is GET
-	    con.setRequestMethod("GET");
-
-	    int responseCode = con.getResponseCode();
-	    System.out.println("\nSending 'GET' request to URL : " + url);
-	    System.out.println("Response Code : " + responseCode);
-	    
-	    
-	    
-	    final InputStream fis = con.getInputStream();
-	    
-	    //final byte[] bytes = fis.readAllBytes();
-	    //System.out.println(new String(bytes));
-	    
 		JsonReader jread = Json.createReader(fis);
 		jsonObject = jread.readObject();
 		System.out.println(jsonObject.toString());
@@ -114,20 +93,17 @@ public class JsonToPdfClass
 		
 	}
 	
-	public static void writePdf(PdfPTable pdfTable) throws FileNotFoundException, DocumentException {
+	public byte[] writePdf(PdfPTable pdfTable) throws FileNotFoundException, DocumentException {
 		Document document = new Document(); 
-    	PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream("/Users/neerajavinoba/Desktop/Agamotto/HelloWorld.pdf"));
         document.open();
         document.add(pdfTable);
         document.close();
-        writer.close();
+        return documentToByte(document);
 	}
 	
-	public static void main(String[] args) throws Exception
+	public byte[] createPDF(AssetDto assetDto) throws Exception
    {
-      
-	  //Get JSON
-		getJson();
+		getJson(assetDto);
 		
 	  try {
 		//Format the PDF
@@ -160,13 +136,20 @@ public class JsonToPdfClass
         addRowToPdfTable("tenantId","Parent Tenant ID",pdfTable);
         addTableToPdfTable(2,"neighbouringAssets",new String[] {"Asset ID","Asset Status","Asset Last Inspected Date"},new String[] {"assetId", "assetStatus","assetLastServicedDate"}, pdfTable);
         
-        writePdf(pdfTable);
+
         System.out.println("Json written to PDF");
-        
+        return writePdf(pdfTable);
         
       } catch (Exception e)
       {
          e.printStackTrace();
+         return null;
       } 
    }
+	public byte[] documentToByte(Document document) throws DocumentException
+	{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PdfWriter.getInstance(document, baos);
+		return baos.toByteArray();
+	}
 }
