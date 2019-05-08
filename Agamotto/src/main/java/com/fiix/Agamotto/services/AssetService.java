@@ -3,6 +3,7 @@ package com.fiix.Agamotto.services;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
@@ -15,6 +16,8 @@ import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
 import com.ma.cmms.api.client.dto.MeterReading;
 import com.ma.cmms.api.client.dto.MeterReadingUnit;
+import com.ma.cmms.api.crud.AddRequest;
+import com.ma.cmms.api.crud.AddResponse;
 import com.ma.cmms.api.crud.FindFilter;
 import com.ma.cmms.api.crud.FindRequest;
 import com.ma.cmms.api.crud.FindResponse;
@@ -22,13 +25,16 @@ import com.ma.cmms.api.crud.FindResponse;
 @Service
 public class AssetService
 {
-	private static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
-	private static String HISTORY_FIELDS = "id,intAssetId,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID";
+	protected static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
+	protected static String HISTORY_FIELDS = "id,intAssetId,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID";
+	private static String TAP_FIELDS = "intSubmittedByUserID, intMeterReadingUnitsID, intAssetID, dtmDateSubmitted";
 
-	private static String ID = "id";
-	private static String ASSET_ID = "intAssetID";
-	private static String USER_ID = "intSubmittedByUserID";
+	protected static String ID = "id";
+	protected static String ASSET_ID = "intAssetID";
+	protected static String USER_ID = "intSubmittedByUserID";
 
+	protected Long inID;
+	protected Long outID;
 	public List<Long> tapMRIDs;
 	public List<FindFilter> tapFilter;
 
@@ -73,17 +79,17 @@ public class AssetService
 
 	public String Tap(String assetId, String userId)
 	{
-		HashMap<Long, Stack<MeterReading>> history = new HashMap<>();
+		HashMap<Long, Stack<MeterReading>> assetHistory = new HashMap<>();
 
 		List<MeterReading> allTaps = getMeterReadingsByUser(userId).stream().filter(mr -> mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap")).collect(Collectors.toList());
 
 		allTaps.forEach(mr -> {
 			Long mrAssetID = mr.getIntAssetID();
-			if (!history.containsKey(mrAssetID))
+			if (!assetHistory.containsKey(mrAssetID))
 			{
-				history.put(mrAssetID, new Stack<MeterReading>());
+				assetHistory.put(mrAssetID, new Stack<MeterReading>());
 			}
-			Stack<MeterReading> assetStack = history.get(mrAssetID);
+			Stack<MeterReading> assetStack = assetHistory.get(mrAssetID);
 			if (mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("In"))
 			{
 				assetStack.push(mr);
@@ -92,31 +98,45 @@ public class AssetService
 			{
 				assetStack.pop();
 			}
-			history.put(mrAssetID, assetStack);
+			assetHistory.put(mrAssetID, assetStack);
 		});
-		//		List<MeterReading> tapIn = allMeterReadings.stream().filter(mr -> mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap In")).map(mr -> {
-		//			if (!inHistory.containsKey(mr.getIntAssetID()))
-		//			{
-		//				inHistory.put(mr.getIntAssetID(), new ArrayList<Date>());
-		//			}
-		//			List<Date> assetInHistory = inHistory.get(mr.getIntAssetID());
-		//			assetInHistory.add(mr.getDtmDateSubmitted());
-		//			inHistory.put(mr.getIntAssetID(), assetInHistory);
-		//			return mr;
-		//		}).collect(Collectors.toList());
-		//
-		//		List<MeterReading> tapOut = allMeterReadings.stream().filter(mr -> mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap Out")).map(mr -> {
-		//			if (!outHistory.containsKey(mr.getIntAssetID()))
-		//			{
-		//				outHistory.put(mr.getIntAssetID(), new ArrayList<Date>());
-		//			}
-		//			List<Date> assetOutHistory = outHistory.get(mr.getIntAssetID());
-		//			assetOutHistory.add(mr.getDtmDateSubmitted());
-		//			outHistory.put(mr.getIntAssetID(), assetOutHistory);
-		//			return mr;
-		//		}).collect(Collectors.toList());
-		return history.toString();
+		if (assetHistory.get(Long.valueOf(assetId)).isEmpty())
+		{
+			logTapIn(assetId, userId);
+		}
+		assetHistory.keySet().forEach(key -> {
+			Stack<MeterReading> assetStack = assetHistory.get(key);
+			if (!assetStack.isEmpty())
+			{
+				logTapOut(key.toString(), userId);
+			}
+		});
 
+		return assetHistory.toString();
+	}
+
+	private AddResponse<MeterReading> logTapIn(String assetID, String userID)
+	{
+		return logTap(assetID, userID, inID);
+	}
+
+	private AddResponse<MeterReading> logTapOut(String assetID, String userID)
+	{
+		return logTap(assetID, userID, outID);
+	}
+
+	private AddResponse<MeterReading> logTap(String assetId, String userId, Long unitID)
+	{
+		AddRequest<MeterReading> addRequest = fiixCmmsClient.prepareAdd(MeterReading.class);
+		MeterReading object = new MeterReading();
+		object.setIntMeterReadingUnitsID(unitID);
+		object.setIntAssetID(Long.valueOf(assetId));
+		object.setIntSubmittedByUserID(Long.valueOf(userId));
+		object.setDtmDateSubmitted(new Date());
+		object.setDblMeterReading(0.0);
+		addRequest.setObject(object);
+		addRequest.setFields(TAP_FIELDS);
+		return fiixCmmsClient.add(addRequest);
 	}
 
 	private List<FindFilter> getFilter(String field, String operator, String value)
@@ -134,7 +154,17 @@ public class AssetService
 		FindRequest<MeterReadingUnit> findRequest = fiixCmmsClient.prepareFind(MeterReadingUnit.class);
 		findRequest.setFields("id,strName");
 		FindResponse<MeterReadingUnit> findResponse = fiixCmmsClient.find(findRequest);
-		tapMRIDs = findResponse.getObjects().stream().filter(mr -> mr.getStrName().contains("Tap")).map(mr -> mr.getId()).collect(Collectors.toList());
+		tapMRIDs = findResponse.getObjects().stream().filter(mr -> mr.getStrName().contains("Tap")).map(mr -> {
+			if (mr.getStrName().contains("Out"))
+			{
+				outID = mr.getId();
+			}
+			else
+			{
+				inID = mr.getId();
+			}
+			return mr.getId();
+		}).collect(Collectors.toList());
 		String ql = tapMRIDs.toString();
 		ql = "(".concat(ql.substring(1, ql.length() - 1)).concat(")");
 		tapFilter = getFilter(ID, " IN ", ql);
@@ -226,5 +256,4 @@ public class AssetService
 
 		return asList(filter);
 	}
-
 }
