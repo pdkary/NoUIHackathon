@@ -3,7 +3,9 @@ package com.fiix.Agamotto.services;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ import com.ma.cmms.api.crud.FindResponse;
 public class AssetService
 {
 	private static String DETAIL_FIELDS = "id, strName, strCode, strDescription, strCity, strAddress, strNotes, intSiteID, intCategoryID, strSerialNumber, intAssetLocationID, bolIsOnline, intAssetParentID, strStockLocation, intUpdated, strBarcode";
-	private static String HISTORY_FIELDS = "id,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID";
+	private static String HISTORY_FIELDS = "id,intAssetId,dblMeterReading,dtmDateSubmitted,dv_intMeterReadingUnitsID,intSubmittedByUserID";
 
 	private static String ID = "id";
 	private static String ASSET_ID = "intAssetID";
@@ -69,10 +71,52 @@ public class AssetService
 		return findResponse.getObjects();
 	}
 
-	public void Tap(String assetId, String userId)
+	public String Tap(String assetId, String userId)
 	{
-		List<MeterReading> readings = getMeterReadingsByUser(userId);
-		//^^ this will be a list of meter readings submitted by the user, in descending order (oldest first)
+		HashMap<Long, Stack<MeterReading>> history = new HashMap<>();
+
+		List<MeterReading> allTaps = getMeterReadingsByUser(userId).stream().filter(mr -> mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap")).collect(Collectors.toList());
+
+		allTaps.forEach(mr -> {
+			Long mrAssetID = mr.getIntAssetID();
+			if (!history.containsKey(mrAssetID))
+			{
+				history.put(mrAssetID, new Stack<MeterReading>());
+			}
+			Stack<MeterReading> assetStack = history.get(mrAssetID);
+			if (mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("In"))
+			{
+				assetStack.push(mr);
+			}
+			else
+			{
+				assetStack.pop();
+			}
+			history.put(mrAssetID, assetStack);
+		});
+		//		List<MeterReading> tapIn = allMeterReadings.stream().filter(mr -> mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap In")).map(mr -> {
+		//			if (!inHistory.containsKey(mr.getIntAssetID()))
+		//			{
+		//				inHistory.put(mr.getIntAssetID(), new ArrayList<Date>());
+		//			}
+		//			List<Date> assetInHistory = inHistory.get(mr.getIntAssetID());
+		//			assetInHistory.add(mr.getDtmDateSubmitted());
+		//			inHistory.put(mr.getIntAssetID(), assetInHistory);
+		//			return mr;
+		//		}).collect(Collectors.toList());
+		//
+		//		List<MeterReading> tapOut = allMeterReadings.stream().filter(mr -> mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap Out")).map(mr -> {
+		//			if (!outHistory.containsKey(mr.getIntAssetID()))
+		//			{
+		//				outHistory.put(mr.getIntAssetID(), new ArrayList<Date>());
+		//			}
+		//			List<Date> assetOutHistory = outHistory.get(mr.getIntAssetID());
+		//			assetOutHistory.add(mr.getDtmDateSubmitted());
+		//			outHistory.put(mr.getIntAssetID(), assetOutHistory);
+		//			return mr;
+		//		}).collect(Collectors.toList());
+		return history.toString();
+
 	}
 
 	private List<FindFilter> getFilter(String field, String operator, String value)
@@ -182,4 +226,5 @@ public class AssetService
 
 		return asList(filter);
 	}
+
 }

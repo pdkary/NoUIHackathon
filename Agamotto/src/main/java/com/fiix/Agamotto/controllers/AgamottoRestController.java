@@ -1,5 +1,7 @@
 package com.fiix.Agamotto.controllers;
 
+import static java.util.Arrays.asList;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,6 @@ import com.fiix.Agamotto.services.AssetService;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.Asset;
 import com.ma.cmms.api.client.dto.MeterReading;
-
-import static java.util.Arrays.asList;
 
 @RestController
 public class AgamottoRestController
@@ -73,5 +73,12 @@ public class AgamottoRestController
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		return mapper.writeValueAsString(asList(nearbyAssets));
+	}
+
+	@GetMapping("/tap")
+	@ResponseBody
+	public String testTap()
+	{
+		return assetService.Tap("5904069", "18");
 	}
 }
