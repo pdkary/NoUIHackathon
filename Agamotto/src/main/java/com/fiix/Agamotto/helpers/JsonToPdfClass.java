@@ -8,53 +8,47 @@ import com.itextpdf.text.pdf.CMYKColor;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import org.apache.tomcat.util.json.JSONParser;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import javax.json.*;
+import java.io.*;
 
 //import java.io.FileNotFoundException;
 //import com.itextpdf.text.DocumentException;
- 
+
 public class JsonToPdfClass
 {
 	static BaseColor cellBgTitle = BaseColor.LIGHT_GRAY;
 	static BaseColor cellBgValue = BaseColor.WHITE;
-	private static JsonObject jsonObject;
-	
-	public static void getJson(AssetDto assetDto) throws IOException {
+	private JsonObject jsonObject;
+
+	public void getJson(AssetDto assetDto) throws IOException {
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 		String jsonStr = mapper.writeValueAsString(assetDto);
-		ByteArrayInputStream fis = new ByteArrayInputStream(jsonStr.getBytes());
 
-		JsonReader jread = Json.createReader(fis);
-		jsonObject = jread.readObject();
+		JsonReader jsonReader = Json.createReader(new StringReader(jsonStr));
+		jsonObject = jsonReader.readObject();
+		jsonReader.close();
 		System.out.println(jsonObject.toString());
-		jread.close();
 	}
-	
+
 	public static PdfPCell formatCell(PdfPCell pdfCellInput, BaseColor basecolor) {
-		
+
 		pdfCellInput.setBackgroundColor(basecolor);
         pdfCellInput.setHorizontalAlignment(Element.ALIGN_CENTER);
         pdfCellInput.setVerticalAlignment(Element.ALIGN_LEFT);
 		return pdfCellInput;
 	}
-	
-	public static void addRowToPdfTable(String keyInJson, String title, PdfPTable pdfTable) {
+
+	public void addRowToPdfTable(String keyInJson, String title, PdfPTable pdfTable) {
 		Font titleFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 14, Font.NORMAL, new CMYKColor(100, 80, 0, 0));
 		Font dataFont = FontFactory.getFont(FontFactory.TIMES, 14, Font.NORMAL, new CMYKColor(100, 40, 0, 0));
 		PdfPCell rowTitle = new PdfPCell(new Paragraph(title,titleFont));
 		rowTitle = formatCell(rowTitle, cellBgTitle);
 		String rowValueInJson=null;
-		
+
 		try {
 		rowValueInJson = jsonObject.getString(keyInJson);
 		}
@@ -64,12 +58,12 @@ public class JsonToPdfClass
 		}
         PdfPCell rowValue = new PdfPCell(new Paragraph(rowValueInJson,dataFont));
         rowValue = formatCell(rowValue,cellBgValue);
-        
+
         pdfTable.addCell(rowTitle);
         pdfTable.addCell(rowValue);
 	}
-	
-	public static void addTableToPdfTable(int childTableCols, String keyInJsonForMainArray, String[] childArrayTitles, String[] childArrayKeys, PdfPTable mainTable) {
+
+	public void addTableToPdfTable(int childTableCols, String keyInJsonForMainArray, String[] childArrayTitles, String[] childArrayKeys, PdfPTable mainTable) {
 		Font titleFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 14, Font.NORMAL, new CMYKColor(100, 80, 0, 0));
 		Font dataFont = FontFactory.getFont(FontFactory.TIMES, 14, Font.NORMAL, new CMYKColor(100, 40, 0, 0));
 		//Forming the childTable
@@ -89,38 +83,38 @@ public class JsonToPdfClass
 		PdfPCell childTableTitle = new PdfPCell(new Paragraph("Neighbouring Assets"));
 		mainTable.addCell(childTableTitle);
 		mainTable.addCell(childTable);
-		
-		
+
+
 	}
-	
+
 	public byte[] writePdf(PdfPTable pdfTable) throws FileNotFoundException, DocumentException {
-		Document document = new Document(); 
+		Document document = new Document();
         document.open();
         document.add(pdfTable);
         document.close();
         return documentToByte(document);
 	}
-	
+
 	public byte[] createPDF(AssetDto assetDto) throws Exception
    {
 		getJson(assetDto);
-		
+
 	  try {
 		//Format the PDF
         PdfPTable pdfTable = new PdfPTable(2);
         pdfTable.setWidthPercentage(100); //Width 100%
         pdfTable.setSpacingBefore(10f); //Space before table
         pdfTable.setSpacingAfter(10f); //Space after table
-        
+
         float[] columnWidths = {1f,1f};
         pdfTable.setWidths(columnWidths);
-        
+
         String assetTitleString = "Information for the asset - ";
         PdfPCell assetTitle = new PdfPCell(new Paragraph(assetTitleString+jsonObject.getString("assetName")));
         assetTitle.setColspan(2);
         assetTitle.setHorizontalAlignment(Element.ALIGN_CENTER);
         pdfTable.addCell(assetTitle);
-        
+
         addRowToPdfTable("assetStatus","Asset Status",pdfTable);
         addRowToPdfTable("assetCode","Asset ID",pdfTable);
         addRowToPdfTable("serialNumber","Serial Number",pdfTable);
@@ -135,16 +129,16 @@ public class JsonToPdfClass
         addRowToPdfTable("assetBarCode","Asset Bar Code",pdfTable);
         addRowToPdfTable("tenantId","Parent Tenant ID",pdfTable);
         addTableToPdfTable(2,"neighbouringAssets",new String[] {"Asset ID","Asset Status","Asset Last Inspected Date"},new String[] {"assetId", "assetStatus","assetLastServicedDate"}, pdfTable);
-        
+
 
         System.out.println("Json written to PDF");
         return writePdf(pdfTable);
-        
+
       } catch (Exception e)
       {
          e.printStackTrace();
          return null;
-      } 
+      }
    }
 	public byte[] documentToByte(Document document) throws DocumentException
 	{
