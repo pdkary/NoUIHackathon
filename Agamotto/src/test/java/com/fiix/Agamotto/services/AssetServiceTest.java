@@ -1,19 +1,21 @@
 package com.fiix.Agamotto.services;
 
+import com.fiix.Agamotto.models.TapDto;
 import com.ma.cmms.api.client.FiixCmmsClient;
 import com.ma.cmms.api.client.dto.MeterReading;
-import com.ma.cmms.api.crud.FindRequest;
-import com.ma.cmms.api.crud.FindResponse;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.matchers.Find;
-
-import static org.mockito.Mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
-public class AssetServiceTest extends AssetService
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class AssetServiceTest
 {
 	private static Long GENERIC_ID = -0L;
 	private static Long TAP_IN_ID = -1L;
@@ -21,12 +23,15 @@ public class AssetServiceTest extends AssetService
 	private static Long ASSET_ID = -3L;
 	private static Long USER_ID = -4L;
 
+	private static String TEST_STR = "Test";
+
 	@Mock
 	FiixCmmsClient fiixCmmsClient;
 
 	MeterReading mockTapIn = new MeterReading();
 	MeterReading mockTapOut = new MeterReading();
 
+	@InjectMocks
 	public AssetService sut;
 
 	@Before
@@ -39,6 +44,7 @@ public class AssetServiceTest extends AssetService
 		mockTapIn.setIntMeterReadingUnitsID(TAP_IN_ID);
 		Map<String,Object> extraFields = new LinkedHashMap<>();
 		extraFields.put("dv_intMeterReadingUnitsID","Tap in (ti)");
+		extraFields.put("dv_intAssetID",TEST_STR);
 		mockTapIn.setExtraFields(extraFields);
 
 		mockTapOut.setId(GENERIC_ID);
@@ -49,19 +55,17 @@ public class AssetServiceTest extends AssetService
 		Map<String,Object> extraFields2 = new LinkedHashMap<>();
 		extraFields.put("dv_intMeterReadingUnitsID","Tap Out (to)");
 		mockTapOut.setExtraFields(extraFields);
+
+		List<MeterReading> readings = new ArrayList<>();
+		readings.add(mockTapIn);
+
+		when(sut.getMeterReadingsByUser("18")).thenReturn(readings);
 	}
 
 	@Test
 	public void testTapSubmitsATapOutWhenOpenAssetIsTapped()
 	{
-		List<MeterReading> readings = new ArrayList<>();
-		readings.add(mockTapIn);
-
-		FindResponse<MeterReading> findResponse = new FindResponse<MeterReading>();
-		findResponse.setObjects(readings);
-
-		when(fiixCmmsClient.find(any(FindRequest.class))).thenReturn(findResponse);
-
+		TapDto tapDto = sut.Tap("1","18");
+		assert(tapDto.getOutTap().equals(TEST_STR));
 	}
-
 }

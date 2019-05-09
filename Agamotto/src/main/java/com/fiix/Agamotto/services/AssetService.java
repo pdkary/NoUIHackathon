@@ -61,7 +61,8 @@ public class AssetService
 		findRequest.setOrderBy("dtmDateSubmitted asc");
 
 		FindResponse<MeterReading> findResponse = fiixCmmsClient.find(findRequest);
-		return findResponse.getObjects();
+		return findResponse.getTotalObjects() !=0 ? findResponse.getObjects() : new ArrayList<>();
+
 	}
 
 	public List<MeterReading> getMeterReadingsByUser(String userId)
@@ -84,7 +85,7 @@ public class AssetService
 
 		List<MeterReading> allTaps = getMeterReadingsByUser(userId).stream().filter(mr -> {
 			boolean isTap = mr.getExtraFields().get("dv_intMeterReadingUnitsID").toString().contains("Tap");
-			boolean isNewIsh = mr.getDtmDateSubmitted().after(Date.from(Instant.now().minusSeconds(3600)));
+			boolean isNewIsh = mr.getDtmDateSubmitted().after(Date.from(Instant.now().minusSeconds(36000)));
 			return isTap && isNewIsh;
 		}).collect(Collectors.toList());
 		allTaps.forEach(mr -> {
