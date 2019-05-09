@@ -89,11 +89,21 @@ public class JsonToPdfClass
 		JsonArray childArray = jsonObject.getJsonArray(keyInJsonForMainArray);
 
 		if(childTableCols == 1) {
-			for(JsonValue arrayVal: childArray) {
-				String childJson = arrayVal.toString();
-				PdfPCell childValue = new PdfPCell(new Paragraph(childJson,dataFont));
+			for(int j=0;j<childArray.size();j++) {
+				JsonObject childObject = childArray.getJsonObject(j);
+				String childInJson = childObject.getString(childArrayTitles[0]);
+				PdfPCell childValue = new PdfPCell(new Paragraph(childInJson,dataFont));
+				childValue = formatCell(childValue, cellBgValue);
+				childValue.setHorizontalAlignment(Element.ALIGN_LEFT);
 				childTable.addCell(childValue);
 			}
+//			for(JsonValue arrayVal: childArray) {
+//				String childJson = arrayVal.toString();
+//				PdfPCell childValue = new PdfPCell(new Paragraph(childJson,dataFont));
+//				childTable.addCell(childValue);
+//			}
+
+
 			PdfPCell childTableTitle = new PdfPCell(new Paragraph("Asset Manuals",titleFont));
 			mainTable.addCell(childTableTitle);
 			mainTable.addCell(childTable);
@@ -165,14 +175,13 @@ public class JsonToPdfClass
 			addRowToPdfTable("assetModel","Asset Model",pdfTable);
 			addRowToPdfTable("assetStatus","Asset Status",pdfTable);
 			addRowToPdfTable("assetDescription","Asset Description",pdfTable);
-			addRowToPdfTable("assetLocation","Asset Location",pdfTable);
-			addRowToPdfTable("assetCreatedDate","Asset Created Date",pdfTable);
+			//addRowToPdfTable("assetLocation","Asset Location",pdfTable);
+			//addRowToPdfTable("assetCreatedDate","Asset Created Date",pdfTable);
 			addRowToPdfTable("assetLastInspectedDate","Asset Last Inspected",pdfTable);
 			addRowToPdfTable("assetBarCode","Asset Bar Code",pdfTable);
 			addRowToPdfTable("tenantId","Parent Tenant ID",pdfTable);
 			addTableToPdfTable(2,"neighbouringAssets",new String[] {"Asset ID","Asset Status","Asset Last Inspected Date"},new String[] {"assetId", "assetStatus","assetLastServicedDate"}, pdfTable);
-			addTableToPdfTable(1,"assetManuals",new String[] {""},new String[] {""}, pdfTable);
-			return writePdf(pdfTable);
+			addTableToPdfTable(1,"assetManuals",new String[] {"manualUrl"},new String[] {""}, pdfTable);			return writePdf(pdfTable);
 
 		} catch (Exception e)
 		{

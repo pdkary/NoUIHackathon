@@ -15,16 +15,17 @@ public class ConsolidatedHelper {
   private static final Long TENANT_ID = 45620L;
 
   public static void copyAssetData(Asset asset, AssetDto.AssetDtoBuilder builder) {
+    Object dv_intAssetLocationID = asset.getExtraFields().get("dv_intAssetLocationID");
     builder
         .assetCode(asset.getStrCode())
         .assetName(asset.getStrName())
         .serialNumber(asset.getStrSerialNumber())
-        .assetCategory(String.valueOf(asset.getIntCategoryID())) // TODO??
-        // .assetManufacturer(asset)
+        .assetCategory(String.valueOf(asset.getExtraFields().get("dv_intCategoryID"))) // TODO??
+        .assetManufacturer("Stark Industries")
         .assetModel(asset.getStrModel())
-        .assetStatus(BOOLEAN_TRUE.equals(asset.getBolIsOnline()) ? "online" : "offline")
+        .assetStatus(BOOLEAN_TRUE.equals(asset.getBolIsOnline()) ? "Online" : "Offline")
         .assetDescription(asset.getStrDescription())
-        .assetLocation(asset.getStrStockLocation())
+        .assetLocation(dv_intAssetLocationID != null ? String.valueOf(dv_intAssetLocationID) : null)
         // .assetCreatedDate()//TODO??
         .assetLastInspectedDate(String.valueOf(asset.getIntUpdated()))
         .assetBarCode(asset.getStrBarcode())
@@ -61,7 +62,7 @@ public class ConsolidatedHelper {
                   neighbourAssets.add(
                       new NeighbourAsset(
                           String.valueOf(asset.getId()),
-                          BOOLEAN_TRUE.equals(asset.getBolIsOnline()) ? "online" : "offline",
+                          BOOLEAN_TRUE.equals(asset.getBolIsOnline()) ? "Online" : "Offline",
                           String.valueOf(asset.getIntUpdated()))));
     }
     return neighbourAssets;
